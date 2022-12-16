@@ -1,0 +1,200 @@
+create database cricket;
+use  cricket;
+create table if not exists batsman_data(SL_No Int,
+                                        Batting_status varchar(100),
+                                        Runs int,
+                                        Balls_faced int,
+                                        Strike_rate float,
+                                        fours int,
+                                        sixes int,
+                                        Opposite_team varchar(200),
+                                        ground varchar(100),
+                                        start_date varchar(100),
+                                        match_id varchar(100),
+                                        batsman varchar (100),
+                                        player_id int
+                                       );
+load data infile
+"D:\Batsman_Data.csv"
+into table batsman_data
+Fields terminated by ","
+enclosed by "'"
+lines terminated by '\n'
+ignore 1 rows;
+
+create table Bowler_data3(Sl_No int,
+                        overs varchar(100),
+                        maiden int,
+                        runs int,
+                        wickets int,
+                        E_con varchar(100),
+                        average varchar(100),
+                        Strike_rate varchar(100),
+                        opposition varchar(100),
+                        ground varchar(100),
+                        start_date varchar(100),
+                        match_id varchar(100),
+                        bowler_id varchar(100),
+                        player varchar(100));
+                        
+load data infile
+"D:\Bowler_data.csv"
+into table Bowler_data3
+Fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 rows;
+                        
+ select * from Bowler_data3;
+set sql_mode=""
+create table match_results(no_of_matches int,
+                           result varchar(100),
+                           margin varchar(100),
+                           BR int,
+                           Toss varchar(100),
+                           bat varchar(100),
+                           opposition varchar(100),
+                           ground varchar(100),
+                           start_date varchar(100),
+                           match_id varchar (100),
+                           country varchar(100),
+                           country_id int);
+SET foreign_key_checks = 0;
+
+load data infile
+'D:\ODI_Match_Results.csv'
+into table match_results
+Fields terminated by ','
+enclosed by "'"
+lines terminated by '\n'
+ignore 1 rows;
+
+--Checking_the count_of_rows-loaded--
+
+select count(no_of_matches) from match_results
+select count(Sl_No) from baller_data;
+select count(SL_No) from batsman_data;
+
+--see_the_data_loaded
+
+select * from match_results;
+select * from Bowler_data3;
+select * from batsman_data;
+
+drop table match_results;
+drop table Bowler_data3;
+drop table batsman_data;
+
+Set Session sql_mode =''
+
+--considering_baller_data_for cleaning
+
+select * from Bowler_data3
+select count(overs) from Bowler_data3 where overs = "-"
+
+--Deleating_the_fieds_with_"-"_Data
+
+SET SQL_SAFE_UPDATES = 0;
+delete from Bowler_data3 where overs ="-"
+
+
+--checking_the_data_for_cleaning_By_each_column
+select * from Bowler_data3
+select distinct(overs) from Bowler_data3 --No missing_values
+select distinct(maiden) from Bowler_data3--No missing_values
+select distinct(runs) from Bowler_data3 --No missing_values
+select distinct(wickets) from Bowler_data3 --No missing_values
+select distinct(E_con) from Bowler_data3	--No missing_values
+select distinct(average) from Bowler_data3 --Have_missing_value/Special characters
+select distinct(strike_rate) from Bowler_data3 --Have_missing_value/Special characters--Column_deleated/not_relavant
+select distinct(opposition) from Bowler_data3	--No_missing_values
+select distinct(ground) from Bowler_data3	--No_missing_values
+select distinct(start_date) from Bowler_data3	--No_missing_values
+select distinct(match_id) from Bowler_data3	--No_missing_values
+select distinct(bowler_id) from Bowler_data3 --No_missing_values
+select distinct(player) from Bowler_data3	--No_missing_values
+
+--The coulumn_strike_rate_is_not_relavet_for_Bowler_So we_can_remove_the_column
+
+alter table Bowler_data3
+drop column Strike_rate
+
+--Missing_data_handling_column_average_Data_cleaning
+select count(average) from Bowler_data3
+select * from Bowler_data3
+select distinct(average) from Bowler_data3 
+select count(average) from Bowler_data3 where average="-"
+--the_column_average_has_2228_rows_So we_can_take_the_average_of_all_the_column_and_paste
+
+--Taking average_of_column_average
+select avg(average) from Bowler_data3
+
+select * from Bowler_data3
+update Bowler_data3
+set  average=17.06
+where `average`='-'
+
+
+--considering_batsman_data
+select Batting_status from batsman_data--No_missing/blank_values
+select distinct(Runs) from batsman_data order by Runs --No missing/blank_values
+select distinct(Balls_faced) from batsman_data order by Balls_faced --No Missing/blank_values
+select distinct(Strike_rate) from batsman_data order by Strike_rate --No Missing/blank_values
+select distinct(fours) from batsman_data order by fours --No_Missing/blank_values
+select distinct(sixes) from batsman_data order by sixes --No_Missing/blank_values
+select distinct(Opposite_team) from batsman_data group by Opposite_team --No_Missing/blank_values
+select distinct(ground) from batsman_data group by ground --No_Missing/blank_values
+select distinct(match_id) from batsman_data group by match_id --No Missing/blank_values
+select distinct(batsman) from batsman_data group by batsman --No Missing/blank_values
+select distinct(player_id) from batsman_data order by player_id ----No_Missing/blank_values
+
+select * from batsman_data
+
+--Create_seperate_column_for_batsman_who_not_out_
+alter table batsman_data
+add column batsman_not_out_scores varchar(100)
+update batsman_data
+set batsman_not_out_scores = "out" where Batting_status not like "%*%"
+update batsman_data
+set batsman_not_out_scores = "not_out" where Batting_status like "%*%"
+
+--Delete_the_rows_for_"absent"_"sub"_"TNDB"_which_is_not_relavant_for_us_to_consider
+select * from batsman_data
+select distinct batting_status from batsman_data order by batting_status
+delete from batsman_data where batting_status in ("absent","sub","TDNB")
+
+--Considering the data_cleaning_of_ match_results
+
+select * from match_results
+--Data_Cleaning
+--After_the_review_of_data_match_results_in_MS_EXCEL_the_data_in_the_column_"result"_can_be modify_
+
+select * from match_results
+select distinct(result) from match_results
+--We_can_delete_the_rows_containing_except"won_lost_tied"_as_we_do_not_have_any_intresting_data
+
+select count(*) from match_results where result in ("won","lost","tied")
+select count(*) from match_results
+delete from match_results where result not in ("won","lost","tied")
+select count(*) from match_results
+
+--Now we can_join_the_data_and make_it_as_a_master_table
+
+select * from match_results;
+select * from Bowler_data3;
+select * from batsman_data;
+
+--Joining_the_table_with_match_id_of_match_results_with_Primary_key_as_matchid
+
+alter table match_results
+set match_results=
+with master as (select * from match_results as mr
+left join Bowler_data3 as bl
+on mr.match_id =bl.match_id
+left join batsman_data as bt
+on mr.match_id = bt.match_id)
+select  * from match_results
+
+
+-----***********_END_******-----------
+
